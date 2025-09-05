@@ -1,27 +1,31 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.21;
 
-import {IFxUSD} from "./interfaces/IFxUSD.sol";
 import {MinimalAggregatorV3Interface} from "./interfaces/MinimalAggregatorV3Interface.sol";
 
-/// @title FxUSDNetAssetValueChainlinkAdapter
+interface INetAssetValue {
+    /// @notice Return the nav of token.
+    function nav() external view returns (uint256);
+}
+
+/// @title NetAssetValueChainlinkAdapter
 /// @author Aladdin DAO
 /// @custom:contact security@morpho.org
-/// @notice fxUSD net asset value price feed.
+/// @notice Net asset value USD price feed.
 /// @dev This contract should only be deployed on Ethereum and used as a price feed for Morpho oracles.
-contract FxUSDNetAssetValueChainlinkAdapter is MinimalAggregatorV3Interface {
+contract NetAssetValueChainlinkAdapter is MinimalAggregatorV3Interface {
     /// @inheritdoc MinimalAggregatorV3Interface
     // @dev The calculated price has 18 decimals precision, whatever the value of `decimals`.
     uint8 public constant decimals = 18;
 
     /// @notice The description of the price feed.
-    string public constant description = "fxUSD net asset value";
+    string public constant description = "Net Asset Value in USD";
 
-    /// @notice The address of fxUSD on Ethereum.
-    IFxUSD public immutable fxUSD;
+    /// @notice The address of token on Ethereum.
+    INetAssetValue public immutable token;
 
-    constructor(IFxUSD _fxUSD) {
-        fxUSD = _fxUSD;
+    constructor(INetAssetValue _token) {
+        token = _token;
     }
 
     /// @inheritdoc MinimalAggregatorV3Interface
@@ -32,7 +36,7 @@ contract FxUSDNetAssetValueChainlinkAdapter is MinimalAggregatorV3Interface {
         view
         returns (uint80, int256, uint256, uint256, uint80)
     {
-        // It is assumed that `fxUSD.nav()` returns a price with 18 decimals precision.
-        return (0, int256(fxUSD.nav()), 0, 0, 0);
+        // It is assumed that `token.nav()` returns a usd price with 18 decimals precision.
+        return (0, int256(token.nav()), block.timestamp, block.timestamp, 0);
     }
 }
